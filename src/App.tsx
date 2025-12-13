@@ -59,7 +59,7 @@ export default function App() {
             <SearcheForm onSearch={handleSearch} />
             {isLoading && <strong>Loading...</strong>}
             {error && <p>Oops. Something went wrong. Please try again.</p>}
-            {data && <ArticleList items={data.hitsq} />}
+            {data && <ArticleList items={data.hits} />}
             
         </>
     );
