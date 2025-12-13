@@ -31,25 +31,35 @@
 
 // export default App;
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData} from "@tanstack/react-query";
 import SearcheForm from "./components/SearchForm/SearchForm";
 import ArticleList from "./components/ArticleList/ArticleList"
 
 import {fetchArticles} from "./services/article"
 import { useState } from "react";
 
+import ReactPaginate from "react-paginate";
+import css from "./App.module.css"
+
 export default function App() {
 
-    const [search, setSearch] = useState<string | null>(null); 
+    const [search, setSearch] = useState<string | null>(null);
+    const [page, setPage] = useState(0);
 
     const { data, error, isLoading } = useQuery({
-        queryKey: ["articles", search],
-        queryFn: () => fetchArticles(search as string),
-        enabled: search !== null
+        queryKey: ["articles", search, page],
+        queryFn: () => fetchArticles(search as string, page),
+        enabled: search !== null,
+        placeholderData: keepPreviousData
     })
 
     const handleSearch = (topic: string) => {
         setSearch(topic)
+        setPage(0)
+    }
+
+    const handPageChange = ({ selected }: { selected: number }) => {
+        setPage(selected)
     }
 
     return (
@@ -59,8 +69,20 @@ export default function App() {
             <SearcheForm onSearch={handleSearch} />
             {isLoading && <strong>Loading...</strong>}
             {error && <p>Oops. Something went wrong. Please try again.</p>}
-            {data && <ArticleList items={data.hits} />}
-            
+            {data && (
+                <>
+                    <ArticleList items={data.hits} />
+                    <ReactPaginate
+                        nextLabel=">"
+                        previousLabel="<"
+                        pageCount={data.nbPages}
+                        forcePage={page}
+                        containerClassName={css.pagination}
+                        activeClassName={css.active}
+                        onPageChange={handPageChange}
+                    />
+                </>
+            )}
         </>
     );
 }
